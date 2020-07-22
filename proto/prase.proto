@@ -1,0 +1,16 @@
+syntax = "proto3";
+package parser;
+option go_package = "server;server";
+
+service ParserIO {
+  rpc Parse(Input) returns (Output) {}
+}
+
+message Input {
+  string EncodedHTML = 1;
+}
+
+message Output {
+  repeated string Title = 1;
+  repeated string Canonical = 2;
+}

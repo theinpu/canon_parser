@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/saintfish/chardet"
 	"golang.org/x/net/html/charset"
+	"runtime"
+	"time"
 )
 
 type ParserServer struct {
@@ -14,6 +17,11 @@ type ParserServer struct {
 }
 
 func (s *ParserServer) Parse(_ context.Context, input *Input) (*Output, error) {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	alloc := mem.TotalAlloc
+	start := time.Now()
+
 	data, err := base64.StdEncoding.DecodeString(input.EncodedHTML)
 	if err != nil {
 		return nil, err
@@ -58,6 +66,11 @@ func (s *ParserServer) Parse(_ context.Context, input *Input) (*Output, error) {
 			result.Canonical = append(result.Canonical, val)
 		}
 	})
+
+	runtime.ReadMemStats(&mem)
+	duration := time.Since(start)
+	var totalAlloc = float64(mem.TotalAlloc-alloc) / 1024 / 1024
+	fmt.Printf("duration: %s; memory alloc: %.2f Mb\n", duration.String(), totalAlloc)
 
 	return result, nil
 }
